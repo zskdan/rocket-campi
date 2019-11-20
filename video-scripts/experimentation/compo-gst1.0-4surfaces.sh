@@ -17,6 +17,9 @@
 #      REVISION:  ---
 #===============================================================================
 
+# To play the resulted video:
+# $ gst-launch-1.0 filesrc location=out.mp4 ! decodebin ! videoconvert! autovideosink
+
 gsink_z=0
 gsink_h=1080
 gsink_w=1920
@@ -25,8 +28,13 @@ sink_z=10
 sink_h=$[gsink_h/2]
 sink_w=$[gsink_w/2]
 
-gst-launch-1.0 videomixer name=mix sink_0::zorder=$sink_z sink_1::zorder=$sink_z sink_2::zorder=$sink_z sink_3::zorder=$sink_z sink_4::zorder=$gsink_z ! \
-    videoconvert ! autovideosink \
+#OUTPUT="videoconvert ! autovideosink"
+#OUTPUT="jpegenc ! avimux ! filesink location=out.avi"
+#OUTPUT="x264enc pass=quant ! matroskamux ! filesink location=out.mkv"
+OUTPUT="x264enc pass=5 quantizer=25 speed-preset=6 ! video/x-h264, profile=baseline ! mp4mux ! filesink location=out.mp4"
+
+gst-launch-1.0 -e videomixer name=mix sink_0::zorder=$sink_z sink_1::zorder=$sink_z sink_2::zorder=$sink_z sink_3::zorder=$sink_z sink_4::zorder=$gsink_z ! \
+    $OUTPUT \
     videotestsrc pattern=1  ! video/x-raw,framerate=30/1,width=${sink_w},height=${sink_h} ! videobox border-alpha=0 top=0          left=0          ! mix. \
     videotestsrc pattern=15 ! video/x-raw,framerate=30/1,width=${sink_w},height=${sink_h} ! videobox border-alpha=0 top=0          left=-${sink_w} ! mix. \
     videotestsrc pattern=13 ! video/x-raw,framerate=30/1,width=${sink_w},height=${sink_h} ! videobox border-alpha=0 top=-${sink_h} left=0          ! mix. \
